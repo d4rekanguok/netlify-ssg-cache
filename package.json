@@ -6,6 +6,9 @@
   "author": "Derek Nguyen <derek@penandpillow.com>",
   "license": "MIT",
   "private": false,
+  "bin": {
+    "netlify-ssg-cache": "bin/netlify-ssg-cache"
+  },
   "scripts": {
     "build": "tsc -p ./",
     "prepublishOnly": "tsc -p ./"
@@ -17,6 +20,7 @@
   },
   "dependencies": {
     "execa": "^2.1.0",
-    "fs-extra": "^8.1.0"
+    "fs-extra": "^8.1.0",
+    "yurnalist": "^1.1.1"
   }
 }
