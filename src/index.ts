@@ -13,7 +13,7 @@ async function readFileCount(targetPath: string): Promise<number> {
   const files = await fs.readdir(targetPath)
   const countP = files.map<Promise<number>>(async file => {
     const filePath = path.join(targetPath, file)
-    const stats = await fs.statSync(filePath)
+    const stats = await fs.stat(filePath)
     if (stats.isDirectory()) {
       const count = await readFileCount(filePath)
       return count
@@ -81,7 +81,6 @@ export async function main() {
 
     await move(nCachePath, SSGCachePath)
 
-    // @ts-ignore
     await execa('npm', ['run', 'build'], {
       cwd: process.cwd(),
       env: { NODE_ENV: 'production' },
