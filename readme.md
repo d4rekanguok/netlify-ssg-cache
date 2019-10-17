@@ -27,7 +27,8 @@ In your package.json:
 }
 ```
 
-- Use `yarn build:netlify` as your build script on Netlify.
+- Use `yarn build:netlify
+` as your build script on Netlify.
 - You'll still need the `build` script. This package will just run your build command.
 
 
