@@ -77,7 +77,9 @@ function plugin(config: any) {
   try {
     const { nCachePath, SSGCachePath } = getDirectories({ ssg })
     return {
-      getCache: async function() {
+      name: 'netlify-ssg-cache',
+      getCache: async function({ constants }: { constants: any }) {
+        // const nCachePath = path.resolve(constants.CACHE_DIR, 'netlifySSGCache')
         await move(nCachePath, SSGCachePath)
       },
       saveCache: async function (){
