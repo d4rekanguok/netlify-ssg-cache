@@ -1,9 +1,11 @@
 import fs from 'fs-extra'
 import path from 'path'
-import execa from 'execa'
-import report from 'yurnalist'
 
 import { SSG_CACHE_DIR } from './constants'
+
+function err(msg: string) {
+  throw new Error(`[netlify-ssg-cache] ${msg}`)
+}
 
 async function readFileCount(targetPath: string): Promise<number> {
   if (!fs.existsSync(targetPath)) {
@@ -29,19 +31,14 @@ async function readFileCount(targetPath: string): Promise<number> {
   return total
 }
 
-function err(msg: string) {
-  throw new Error(`[netlify-ssg-cache] ${msg}`)
-}
-
-function getDirectories() {
+function getDirectories({ ssg = 'gatsby' }) {
   const basePath = process.env.NETLIFY_BUILD_BASE
-  const SSG = process.env.SSG || 'gatsby'
 
   if (!basePath) {
     err('Not in Netlify environment')
   }
 
-  const SSGCacheDir = SSG_CACHE_DIR[SSG]
+  const SSGCacheDir = SSG_CACHE_DIR[ssg]
   if (typeof SSGCacheDir === 'undefined') {
     err('Unknown SSG')
   }
@@ -67,7 +64,7 @@ async function move(from: string, to: string) {
   }
 
   const fileCount = await readFileCount(from)
-  report.info(`[netlify-ssg-cache] About to move ${fileCount} files`)
+  console.log(`[netlify-ssg-cache] About to move ${fileCount} files`)
 
   if (fs.existsSync(to)) {
     await fs.remove(to)
@@ -75,23 +72,23 @@ async function move(from: string, to: string) {
   return fs.move(from, to)
 }
 
-export async function main() {
+function plugin(config: any) {
+  const { ssg } = config
   try {
-    const { nCachePath, SSGCachePath } = getDirectories()
-
-    await move(nCachePath, SSGCachePath)
-
-    await execa('npm', ['run', 'build'], {
-      cwd: process.cwd(),
-      env: { NODE_ENV: 'production' },
-      stdio: 'inherit',
-    })
-
-    await move(SSGCachePath, nCachePath)
-    report.success(`[netlify-ssg-cache] Done.`)
-
-  } catch (err) {
-    report.warn(err)
+    const { nCachePath, SSGCachePath } = getDirectories({ ssg })
+    return {
+      name: 'netlify-ssg-cache',
+      getCache: async function({ constants }: { constants: any }) {
+        // const nCachePath = path.resolve(constants.CACHE_DIR, 'netlifySSGCache')
+        await move(nCachePath, SSGCachePath)
+      },
+      saveCache: async function (){
+        await move(SSGCachePath, nCachePath)
+      }
+    }
+  } catch(err) {
     throw err
   }
 }
+
+module.exports = plugin
